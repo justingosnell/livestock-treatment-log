@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livestock Treatment Log</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1f2937">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐄</text></svg>">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#1f2937'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+        
+        .nav-tab.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .section-content {
+            display: none;
+        }
+        
+        .section-content.active {
+            display: block;
+        }
+        
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Alert Message -->
+    <div id="alertMessage" class="fixed top-4 left-4 right-4 p-4 rounded-lg shadow-lg z-50 bg-blue-600 hidden">
+        <div class="flex justify-between items-center">
+            <span id="alertText">Alert message</span>
+            <button onclick="hideAlert()" class="text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Offline Indicator -->
+    <div id="offlineIndicator" class="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 z-50 hidden">
+        <p class="text-sm">You're offline. Data will sync when connection is restored.</p>
+    </div>
+
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gray-800 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-6">
+                    <div class="flex items-center">
+                        <span class="text-3xl mr-3">🐄</span>
+                        <h1 class="text-2xl font-bold text-white">Livestock Treatment Log</h1>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button onclick="exportData('all')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            Export Data
+                        </button>
+                        <input type="file" id="importFile" accept=".json" class="hidden">
+                        <button onclick="document.getElementById('importFile').click()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            Import Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-gray-700 shadow">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-8">
+                    <button class="nav-tab active px-3 py-4 text-sm font-medium rounded-t-lg transition-colors" data-section="dashboard">
+                        Dashboard
+                    </button>
+                    <button class="nav-tab px-3 py-4 text-sm font-medium rounded-t-lg transition-colors hover:bg-gray-600" data-section="animals">
+                        Animals
+                    </button>
+                    <button class="nav-tab px-3 py-4 text-sm font-medium rounded-t-lg transition-colors hover:bg-gray-600" data-section="treatments">
+                        Treatments
+                    </button>
+                    <button class="nav-tab px-3 py-4 text-sm font-medium rounded-t-lg transition-colors hover:bg-gray-600" data-section="feeding">
+                        Feeding
+                    </button>
+                    <button class="nav-tab px-3 py-4 text-sm font-medium rounded-t-lg transition-colors hover:bg-gray-600" data-section="breeding">
+                        Breeding
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section-content active">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold mb-6">Dashboard</h2>
+                    
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="card p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-500 bg-opacity-20">
+                                    <span class="text-2xl">🐄</span>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-400">Total Animals</p>
+                                    <p class="text-2xl font-semibold" id="totalAnimals">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-500 bg-opacity-20">
+                                    <span class="text-2xl">💉</span>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-400">Recent Treatments</p>
+                                    <p class="text-2xl font-semibold" id="recentTreatments">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-500 bg-opacity-20">
+                                    <span class="text-2xl">📋</span>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-400">Upcoming Tasks</p>
+                                    <p class="text-2xl font-semibold" id="upcomingTasks">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-pink-500 bg-opacity-20">
+                                    <span class="text-2xl">🤱</span>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-400">Pregnant Animals</p>
+                                    <p class="text-2xl font-semibold" id="pregnantAnimals">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
+                        <div id="recentActivity" class="space-y-3">
+                            <div class="text-gray-400 text-center py-8">No recent activity</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Animals Section -->
+            <div id="animals" class="section-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold">Animals</h2>
+                    <button id="addAnimalBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                        Add Animal
+                    </button>
+                </div>
+                
+                <div id="animalsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Animals will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Treatments Section -->
+            <div id="treatments" class="section-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold">Treatments</h2>
+                    <button id="addTreatmentBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                        Add Treatment
+                    </button>
+                </div>
+                
+                <!-- Filters -->
+                <div class="card p-4 rounded-lg mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Treatment Type</label>
+                            <select id="treatmentFilter" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                                <option value="">All Types</option>
+                                <option value="vaccination">Vaccination</option>
+                                <option value="medication">Medication</option>
+                                <option value="surgery">Surgery</option>
+                                <option value="checkup">Checkup</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Animal</label>
+                            <select id="animalFilter" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                                <option value="">All Animals</option>
+                            </select>
+                        </div>
+                        <div

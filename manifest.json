@@ -1,0 +1,42 @@
+{
+    "name": "Livestock Treatment Log",
+    "short_name": "LivestockLog",
+    "description": "A comprehensive livestock management app for tracking treatments, feeding, and breeding cycles with offline support",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#121212",
+    "theme_color": "#7eb26d",
+    "orientation": "portrait-primary",
+    "scope": "./",
+    "lang": "en",
+    "categories": ["productivity", "agriculture", "business"],
+    "icons": [
+      {
+        "src": "./icons/icon-192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      },
+      {
+        "src": "./icons/icon-512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+    ],
+    "shortcuts": [
+      {
+        "name": "Add Treatment",
+        "short_name": "Treatment",
+        "description": "Quickly add a new treatment record",
+        "url": "./index.html?action=add-treatment",
+        "icons": []
+      },
+      {
+        "name": "View Animals",
+        "short_name": "Animals",
+        "description": "View all animals in the herd",
+        "url": "./index.html?action=view-animals",
+        "icons": []
+      }
+    ]
+  }
+  
